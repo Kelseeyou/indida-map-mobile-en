@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>India 36 States & UTs | Language · Religion · English Mixing Intensity Interactive Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  body,html{margin:0;height:100%;background:#f9f9fb;font-family:system-ui,sans-serif;}
+  #map{height:100vh;width:100vw;}
+  .panel{position:absolute;top:8px;left:8px;right:8px;z-index:1000;background:rgba(255,255,255,0.97);
+         padding:14px;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.18);max-height:82vh;overflow:auto;font-size:14.5px;}
+  .panel h1{font-size:18px;margin:0 0 10px;}
+  .toggle label{display:block;margin:12px 0;font-weight:bold;}
+  .legend .row{display:flex;align-items:center;margin:6px 0;}
+  .swatch{width:21px;height:21px;border-radius:50%;margin-right:10px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+  .footer{position:absolute;bottom:12px;right:12px;z-index:1000;background:rgba(255,255,255,0.9);
+          padding:6px 12px;border-radius:10px;font-size:11px;opacity:0.9;}
+  .no-bg{background:transparent !important;}
+</style>
+</head>
+<body>
+<div class="panel">
+  <h1>India 36 States & UTs · Language · Religion · English Mixing Intensity</h1>
+  <div class="toggle">
+    <label><input type="checkbox" id="lang" checked> Language Family (colored circles)</label>
+    <label><input type="checkbox" id="rel" checked> Religion Influence (Om Crescent Cross)</label>
+    <label><input type="checkbox" id="mix" checked> English Mixing Intensity (red rings)</label>
+  </div>
+  <div class="legend">
+    <div class="row"><span class="swatch" style="background:#f39c12"></span>Indo-Aryan (North India)</div>
+    <div class="row"><span class="swatch" style="background:#3498db"></span>Dravidian (South India)</div>
+    <div class="row"><span class="swatch" style="background:#2ecc71"></span>Sino-Tibetan (Northeast)</div>
+    <div class="row"><span class="swatch" style="background:#9b59b6"></span>Other (e.g. Konkani)</div>
+  </div>
+</div>
+<div id="map"></div>
+<div class="footer">Click markers for details · Simplified 2025 data</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([23.5, 80], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 12, attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+const famColor = {
+  'Indo-Aryan': '#f39c12',
+  'Dravidian': '#3498db',
+  'Tibeto-Burman': '#2ecc71',
+  'Other': '#9b59b6'
+};
+const languageLayer = L.layerGroup().addTo(map);
+const religionLayer = L.layerGroup().addTo(map);
+const mixingLayer = L.layerGroup().addTo(map);
+const states = [
+  // 28个邦
+  {name:"Andhra Pradesh",lat:16.50,lon:80.64,lang:"Telugu",family:"Dravidian",religion:["Hindu","Muslim","Christian"],mixing:"High"},
+  {name:"Arunachal Pradesh",lat:27.06,lon:93.37,lang:"Nishi etc.",family:"Tibeto-Burman",religion:["Christian","Hindu"],mixing:"Medium"},
+  {name:"Assam",lat:26.14,lon:91.77,lang:"Assamese",family:"Indo-Aryan",religion:["Hindu","Muslim"],mixing:"Medium"},
+  {name:"Bihar",lat:25.60,lon:85.10,lang:"Hindi/Maithili",family:"Indo-Aryan",religion:["Hindu","Muslim"],mixing:"Medium"},
+  {name:"Chhattisgarh",lat:21.25,lon:81.63,lang:"Hindi/Chhattisgarhi",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Goa",lat:15.49,lon:73.82,lang:"Konkani",family:"Other",religion:["Christian","Hindu"],mixing:"High"},
+  {name:"Gujarat",lat:22.31,lon:71.74,lang:"Gujarati",family:"Indo-Aryan",religion:["Hindu","Muslim","Jain"],mixing:"Medium"},
+  {name:"Haryana",lat:29.06,lon:76.09,lang:"Hindi",family:"Indo-Aryan",religion:["Hindu"],mixing:"High"},
+  {name:"Himachal Pradesh",lat:31.10,lon:77.17,lang:"Hindi/Pahari",family:"Indo-Aryan",religion:["Hindu"],mixing:"Low"},
+  {name:"Jharkhand",lat:23.34,lon:85.31,lang:"Hindi/Santali",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Karnataka",lat:12.97,lon:77.59,lang:"Kannada",family:"Dravidian",religion:["Hindu","Muslim","Christian"],mixing:"High"},
+  {name:"Kerala",lat:10.00,lon:76.50,lang:"Malayalam",family:"Dravidian",religion:["Hindu","Muslim","Christian"],mixing:"Very High"},
+  {name:"Madhya Pradesh",lat:23.26,lon:77.41,lang:"Hindi",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Maharashtra",lat:19.07,lon:72.88,lang:"Marathi",family:"Indo-Aryan",religion:["Hindu","Muslim","Christian"],mixing:"Very High"},
+  {name:"Manipur",lat:24.82,lon:93.94,lang:"Meitei",family:"Tibeto-Burman",religion:["Hindu","Christian"],mixing:"Medium"},
+  {name:"Meghalaya",lat:25.57,lon:91.88,lang:"Khasi/Garo",family:"Tibeto-Burman",religion:["Christian"],mixing:"High"},
+  {name:"Mizoram",lat:23.73,lon:92.72,lang:"Mizo",family:"Tibeto-Burman",religion:["Christian"],mixing:"Very High"},
+  {name:"Nagaland",lat:25.67,lon:94.11,lang:"Naga langs",family:"Tibeto-Burman",religion:["Christian"],mixing:"Very High"},
+  {name:"Odisha",lat:20.27,lon:85.84,lang:"Odia",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Punjab",lat:30.79,lon:75.84,lang:"Punjabi",family:"Indo-Aryan",religion:["Sikh","Hindu"],mixing:"High"},
+  {name:"Rajasthan",lat:26.91,lon:75.79,lang:"Hindi/Rajasthani",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Sikkim",lat:27.33,lon:88.61,lang:"Nepali/Bhutia",family:"Tibeto-Burman",religion:["Hindu","Buddhist"],mixing:"Medium"},
+  {name:"Tamil Nadu",lat:11.13,lon:78.66,lang:"Tamil",family:"Dravidian",religion:["Hindu","Christian"],mixing:"High"},
+  {name:"Telangana",lat:17.36,lon:78.47,lang:"Telugu",family:"Dravidian",religion:["Hindu","Muslim"],mixing:"High"},
+  {name:"Tripura",lat:23.83,lon:91.28,lang:"Bengali",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"Uttar Pradesh",lat:26.85,lon:80.95,lang:"Hindi",family:"Indo-Aryan",religion:["Hindu","Muslim"],mixing:"High"},
+  {name:"Uttarakhand",lat:30.33,lon:78.06,lang:"Hindi/Garhwal",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"},
+  {name:"West Bengal",lat:22.57,lon:88.36,lang:"Bengali",family:"Indo-Aryan",religion:["Hindu","Muslim"],mixing:"High"},
+  // 8个中央直辖区
+  {name:"Delhi",lat:28.61,lon:77.21,lang:"Hindi",family:"Indo-Aryan",religion:["Hindu","Muslim"],mixing:"Very High"},
+  {name:"Jammu & Kashmir",lat:34.08,lon:74.79,lang:"Kashmiri/Dogri",family:"Indo-Aryan",religion:["Muslim","Hindu"],mixing:"Medium"},
+  {name:"Ladakh",lat:34.15,lon:77.58,lang:"Ladakhi",family:"Tibeto-Burman",religion:["Buddhist","Muslim"],mixing:"Low"},
+  {name:"Chandigarh",lat:30.73,lon:76.78,lang:"Punjabi/Hindi",family:"Indo-Aryan",religion:["Hindu","Sikh"],mixing:"High"},
+  {name:"Puducherry",lat:11.94,lon:79.81,lang:"Tamil/French",family:"Dravidian",religion:["Hindu","Christian"],mixing:"High"},
+  {name:"Lakshadweep",lat:10.57,lon:72.63,lang:"Malayalam",family:"Dravidian",religion:["Muslim"],mixing:"Medium"},
+  {name:"Andaman & Nicobar",lat:11.74,lon:92.66,lang:"Bengali/Hindi",family:"Indo-Aryan",religion:["Hindu","Christian"],mixing:"Medium"},
+  {name:"Dadra & Nagar Haveli and Daman & Diu",lat:20.42,lon:73.00,lang:"Gujarati",family:"Indo-Aryan",religion:["Hindu"],mixing:"Medium"}
+];
+states.forEach(s => {
+  // 1. Language family colored circle (top-left offset)
+  L.circleMarker([s.lat + 0.22, s.lon - 0.25], {
+    radius: 11,
+    weight: 2.5,
+    color: '#fff',
+    fillColor: famColor[s.family] || '#888',
+    fillOpacity: 0.95
+  }).bindPopup(`<b>${s.name}</b><br>Main language: ${s.lang}<br>Language family: ${s.family}`)
+    .addTo(languageLayer);
+
+  // 2. Religion icon (center)
+  let symbol = '🕉️';
+  if (s.religion.includes('Christian') && !s.religion.includes('Muslim')) symbol = '✝️';
+  else if (s.religion.includes('Muslim') && s.religion[0] === 'Muslim') symbol = '☪️';
+  else if (s.religion.includes('Muslim')) symbol = '☪️'; // Prioritize Crescent if Muslims present
+  const icon = L.divIcon({html: `<div style="font-size:34px;">${symbol}</div>`, iconSize:[36,36], className:'no-bg'});
+  L.marker([s.lat, s.lon], {icon, zIndexOffset: 1000})
+    .bindPopup(`<b>${s.name}</b><br>Main religions: ${s.religion.join(' · ')}`)
+    .addTo(religionLayer);
+
+  // 3. English mixing intensity red ring (bottom-right offset)
+  const level = s.mixing;
+  const r = level.includes('Very High')?45 : level.includes('High')?35 : level.includes('Medium')?22 : 12;
+  L.circle([s.lat - 0.20, s.lon + 0.23], {
+    radius: r * 14000,
+    color: '#e74c3c',
+    fillColor: '#e74c3c',
+    fillOpacity: 0.24,
+    weight: 2
+  }).bindPopup(`<b>${s.name}</b><br>English mixing intensity: ${level}`)
+    .addTo(mixingLayer);
+});
+// Toggle switches
+['lang','rel','mix'].forEach(id => {
+  document.getElementById(id).onchange = e => {
+    const layer = {lang:languageLayer, rel:religionLayer, mix:mixingLayer}[id];
+    e.target.checked ? map.addLayer(layer) : map.removeLayer(layer);
+  };
+});
+</script>
+</body>
+</html>
