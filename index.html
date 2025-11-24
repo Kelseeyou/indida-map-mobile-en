@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>India First Languages & Religious Influence | Interactive Map (Mobile)</title>
+  https://unpkg.com/leaflet@1.9.4/dist/leaflet.css
+  <style>
+    :root{
+      --bg:#f7f7f9;--panel:#ffffff;--shadow:rgba(0,0,0,0.12);
+      --accent:#0b70d6;--red:#e74c3c;--green:#2ecc71;--blue:#3498db;--orange:#f39c12;--purple:#9b59b6;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+    #map{height:100vh;width:100vw;touch-action:pan-x pan-y;}
+    .panel{
+      position:absolute;top:10px;left:10px;z-index:1000;background:var(--panel);
+      padding:12px;border-radius:12px;box-shadow:0 8px 24px var(--shadow);max-width:88vw;
+    }
+    .panel h1{margin:0 0 6px 0;font-size:18px;}
+    .panel p{margin:6px 0 10px 0;color:#444;font-size:13px;}
+    .toggle label{display:block;margin:8px 0;font-size:16px;}
+    .toggle input{width:22px;height:22px;vertical-align:middle;margin-right:6px;}
+    .legend{margin-top:8px;font-size:14px;}
+    .legend .row{display:flex;align-items:center;margin:4px 0;}
+    .swatch{width:18px;height:18px;border-radius:50%;margin-right:8px;border:1px solid #777;}
+    .footer{
+      position:absolute;right:10px;bottom:10px;z-index:1000;background:var(--panel);
+      padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px var(--shadow);font-size:12px;color:#555;
+    }
+    .leaflet-popup-content{font-size:15px;line-height:1.45;}
+    @media (max-width:480px){
+      .panel{padding:10px}
+      .panel h1{font-size:16px}
+      .legend{font-size:13px}
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>India’s First Languages & Religious Influence (Interactive Map · Mobile)</h1>
+    <p>Tap markers to view “First Language / Religious Communities / English Mixing Features”. Use the toggles to control layers.</p >
+    <div class="toggle">
+      <label><input type="checkbox" id="langLayerChk" checked> Show: First-language layer (colored by language family)</label>
+      <label><input type="checkbox" id="religLayerChk" checked> Show: Religion-influence layer (🕉️ / ☪️ / ✝️)</label>
+      <label><input type="checkbox" id="mixLayerChk" checked> Show: Code-mixing intensity (Hinglish & local-English)</label>
+    </div>
+    <div class="legend">
+      <strong>Language-family colors:</strong>
+      <div class="row"><span class="swatch" style="background:var(--orange)"></span>Indo‑Aryan (Hindi, Punjabi, Bengali, Marathi, Gujarati, Odia, Assamese, etc.)</div>
+      <div class="row"><span class="swatch" style="background:var(--blue)"></span>Dravidian (Tamil, Telugu, Kannada, Malayalam)</div>
+      <div class="row"><span class="swatch" style="background:var(--green)"></span>Tibeto‑Burman (Meitei, Naga languages, Mizo, Khasi/Garo)</div>
+      <div class="row"><span class="swatch" style="background:var(--purple)"></span>Other/Mixed (e.g., Konkani)</div>
+      <hr>
+      <strong>Religion-influence icons:</strong>
+      <div class="row">🕉️ Hindu-majority → English often shows Sanskritised/cultural lexicon (e.g., dharma, puja, prasad)</div>
+      <div class="row">☪️ Significant Muslim communities → Urdu/Persian-origin items more frequent in English (e.g., namaz, roza)</div>
+      <div class="row">✝️ Notable Christian/mission-school tradition → English stronger in schooling/cross-ethnic communication</div>
+      <hr>
+      <strong>Code-mixing intensity:</strong> Red translucent circles: larger radius = more active Hinglish/local‑English mixing (indicative categories).
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <div class="footer">Online map tiles (OpenStreetMap) require internet access. For public sharing, deploy to Netlify or GitHub Pages.</div>
+
+  https://unpkg.com/leaflet@1.9.4/dist/leaflet.js</script>
+  <script>
+    const map = L.map('map', { zoomControl: true }).setView([22.5, 79], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 10, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const famColor = { 'Indo-Aryan':'#f39c12','Dravidian':'#3498db','Tibeto-Burman':'#2ecc71','Other':'#9b59b6' };
+
+    // Simplified state-level centroids and attributes for demo purposes
+    const states = [
+      {name:'Delhi', lat:28.61, lon:77.21, lang:'Hindi', family:'Indo-Aryan', religion:['Hindu','Muslim'], mixing:'Hinglish High'},
+      {name:'Uttar Pradesh', lat:26.85, lon:80.95, lang:'Hindi', family:'Indo-Aryan', religion:['Hindu','Muslim'], mixing:'Hinglish High'},
+      {name:'Bihar', lat:25.60, lon:85.10, lang:'Hindi/Maithili/Bhojpuri', family:'Indo-Aryan', religion:['Hindu','Muslim'], mixing:'Hinglish Medium'},
+      {name:'Rajasthan', lat:26.91, lon:75.79, lang:'Hindi/Rajasthani', family:'Indo-Aryan', religion:['Hindu'], mixing:'Hinglish Medium'},
+      {name:'Madhya Pradesh', lat:23.26, lon:77.41, lang:'Hindi', family:'Indo-Aryan', religion:['Hindu'], mixing:'Hinglish Medium'},
+      {name:'Punjab', lat:30.90, lon:75.85, lang:'Punjabi', family:'Indo-Aryan', religion:['Sikh','Hindu'], mixing:'Punjabi-English Medium'},
+      {name:'Jammu & Kashmir', lat:34.08, lon:74.79, lang:'Kashmiri/Dogri', family:'Indo-Aryan', religion:['Muslim','Hindu'], mixing:'Urdu-influenced English'},
+      {name:'Gujarat', lat:23.02, lon:72.57, lang:'Gujarati', family:'Indo-Aryan', religion:['Hindu','Jain'], mixing:'English-Gujarati Medium'},
+      {name:'Maharashtra', lat:19.07, lon:72.88, lang:'Marathi', family:'Indo-Aryan', religion:['Hindu','Muslim','Christian'], mixing:'Hinglish/Business English High'},
+      {name:'Goa', lat:15.49, lon:73.82, lang:'Konkani', family:'Other', religion:['Christian','Hindu'], mixing:'English-Konkani Medium'},
+      {name:'West Bengal', lat:22.57, lon:88.36, lang:'Bengali', family:'Indo-Aryan', religion:['Hindu','Muslim'], mixing:'English-Bengali Medium'},
+      {name:'Odisha', lat:20.27, lon:85.84, lang:'Odia', family:'Indo-Aryan', religion:['Hindu'], mixing:'Medium'},
+      {name:'Assam', lat:26.18, lon:91.74, lang:'Assamese', family:'Indo-Aryan', religion:['Hindu','Muslim'], mixing:'Medium'},
+      {name:'Meghalaya', lat:25.58, lon:91.88, lang:'Khasi/Garo', family:'Tibeto-Burman', religion:['Christian'], mixing:'English stronger (education)'},
+      {name:'Nagaland', lat:25.67, lon:94.11, lang:'Naga languages', family:'Tibeto-Burman', religion:['Christian'], mixing:'English stronger (inter-ethnic)'},
+      {name:'Mizoram', lat:23.73, lon:92.72, lang:'Mizo', family:'Tibeto-Burman', religion:['Christian'], mixing:'English stronger (inter-ethnic)'},
+      {name:'Manipur', lat:24.82, lon:93.94, lang:'Meitei', family:'Tibeto-Burman', religion:['Hindu','Christian','Muslim'], mixing:'English-Meitei/Hindi'},
+      {name:'Karnataka', lat:12.97, lon:77.59, lang:'Kannada', family:'Dravidian', religion:['Hindu','Muslim','Christian'], mixing:'English-Kannada High'},
+      {name:'Kerala', lat:8.52, lon:76.94, lang:'Malayalam', family:'Dravidian', religion:['Hindu','Muslim','Christian'], mixing:'English stronger (mission schooling)'},
+      {name:'Tamil Nadu', lat:13.08, lon:80.27, lang:'Tamil', family:'Dravidian', religion:['Hindu','Christian','Muslim'], mixing:'English-Tamil High'},
+      {name:'Telangana', lat:17.38, lon:78.48, lang:'Telugu', family:'Dravidian', religion:['Hindu','Muslim'], mixing:'English-Telugu High'},
+      {name:'Andhra Pradesh', lat:16.52, lon:80.64, lang:'Telugu', family:'Dravidian', religion:['Hindu','Muslim','Christian'], mixing:'English-Telugu Medium'}
+    ];
+
+    const languageLayer = L.layerGroup(), religionLayer = L.layerGroup(), mixingLayer = L.layerGroup();
+
+    states.forEach(s=>{
+      const langCircle = L.circleMarker([s.lat, s.lon], {
+        radius: 10, color: famColor[s.family]||'#555', fillColor: famColor[s.family]||'#555', fillOpacity: 0.9, weight: 1
+      }).bindPopup(`<strong>${s.name}</strong><br>First language: ${s.lang}<br>Family: ${s.family}`);
+      langCircle.addTo(languageLayer);
+
+      let symbol = '🕉️';
+      if (s.religion.includes('Christian')) symbol = '✝️';
+      if (s.religion.includes('Muslim') && !s.religion.includes('Christian')) symbol = '☪️';
+      const religIcon = L.divIcon({ html:`<div style="font-size:22px;">${symbol}</div>`, className:'religIcon', iconSize:[26,26] });
+      const religMarker = L.marker([s.lat, s.lon], {icon: religIcon}).bindPopup(
+        `<strong>${s.name}</strong><br>Main religious communities: ${s.religion.join(' / ')}<br>`+
+        (symbol==='✝️'?'Influence: English stronger in schooling & cross-ethnic communication (mission legacy).'
+         :symbol==='☪️'?'Influence: Urdu/Persian-origin items common in English; urban media registers salient.'
+         :'Influence: Sanskritised/local cultural lexicon common in English.')
+      );
+      religMarker.addTo(religionLayer);
+
+      let r = /High/.test(s.mixing) ? 22 : /Medium/.test(s.mixing) ? 12 : 6;
+      const mixCircle = L.circle([s.lat, s.lon], {
+        radius: r*10000, color:'#e74c3c', fillColor:'#e74c3c', fillOpacity:0.25, weight:1
+      }).bindPopup(`<strong>${s.name}</strong><br>Code-mixing: ${s.mixing}`);
+      mixCircle.addTo(mixingLayer);
+    });
+
+    languageLayer.addTo(map);
+    religionLayer.addTo(map);
+    mixingLayer.addTo(map);
+
+    document.getElementById('langLayerChk').addEventListener('change', e=>{
+      e.target.checked ? languageLayer.addTo(map) : map.removeLayer(languageLayer);
+    });
+    document.getElementById('religLayerChk').addEventListener('change', e=>{
+      e.target.checked ? religionLayer.addTo(map) : map.removeLayer(religionLayer);
+    });
+    document.getElementById('mixLayerChk').addEventListener('change', e=>{
+      e.target.checked ? mixingLayer.addTo(map) : map.removeLayer(mixingLayer);
+    });
+
+    try{
+      map.fitBounds(L.featureGroup([languageLayer, religionLayer, mixingLayer]).getBounds(), {padding:[30,30]});
+    }catch(e){}
+  </script>
+</body>
+</html>
